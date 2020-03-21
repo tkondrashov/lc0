@@ -1,6 +1,7 @@
 !subprojects/*.wrap
 *.swp
 .clang_complete
+<<<<<<< HEAD
 .DS_Store
 build/
 compile_commands.json
@@ -11,3 +12,7 @@ src/.vs/
 subprojects/*
 testdata/
 xcuserdata
+=======
+src/.vs/
+.vscode/
+>>>>>>> .gitignore vscode
