@@ -60,7 +60,7 @@ void dumpTensor(void *memory, int elements, char *message, bool fp16 = false)
     for (int i = 0; i < elements; i++)
     {
         float val;
-        if (fp16) 
+        if (fp16)
         {
             half *arr = (half*)temp;
             val = (float)arr[i];
@@ -211,8 +211,7 @@ template <typename DataType>
 class CudnnNetwork : public Network {
  public:
   CudnnNetwork(const WeightsFile& file, const OptionsDict& options)
-      : capabilities_{file.format().network_format().input(),
-                      file.format().network_format().moves_left()} {
+      : capabilities_{file.format().network_format().moves_left()} {
     LegacyWeights weights(file.weights());
     gpu_id_ = options.GetOrDefault<int>("gpu", 0);
 

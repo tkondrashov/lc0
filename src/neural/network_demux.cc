@@ -127,8 +127,6 @@ class DemuxingNetwork : public Network {
 
     if (networks_.size() == 1) {
       capabilities_ = networks_.back()->GetCapabilities();
-    } else {
-      capabilities_.Merge(networks_.back()->GetCapabilities());
     }
 
     for (int i = 0; i < nn_threads; ++i) {

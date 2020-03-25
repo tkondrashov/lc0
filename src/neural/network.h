@@ -83,19 +83,8 @@ class NetworkComputation {
 //    OutputFormat field or other places.
 
 struct NetworkCapabilities {
-  pblczero::NetworkFormat::InputFormat input_format;
   pblczero::NetworkFormat::MovesLeftFormat moves_left;
   // TODO expose information of whether GetDVal() is usable or always zero.
-
-  // Combines capabilities by setting the most restrictive ones. May throw
-  // exception.
-  void Merge(const NetworkCapabilities& other) {
-    if (input_format != other.input_format) {
-      throw Exception("Incompatible input formats, " +
-                      std::to_string(input_format) + " vs " +
-                      std::to_string(other.input_format));
-    }
-  }
 };
 
 class Network {

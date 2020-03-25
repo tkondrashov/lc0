@@ -97,7 +97,6 @@ class Edge {
 
   // Move corresponding to this node. From the point of view of a player,
   // i.e. black's e7e5 is stored as e2e4.
-  // Root node contains move a1a1.
   Move move_;
 
   // Probability that this move will be made, from the policy head of the neural
@@ -107,7 +106,6 @@ class Edge {
   friend class EdgeList;
 };
 
-// Array of Edges.
 class EdgeList {
  public:
   EdgeList() {}
@@ -453,8 +451,10 @@ class Edge_Iterator : public EdgeAndNode {
   Edge_Iterator& operator*() { return *this; }
 
   // If there is node, return it. Otherwise spawn a new one and return it.
-  Node* GetOrSpawnNode(Node* parent,
-                       std::unique_ptr<Node>* node_source = nullptr) {
+  Node* GetOrSpawnNode(
+    Node* parent,
+    std::unique_ptr<Node>* node_source = nullptr
+  ) {
     if (node_) return node_;  // If there is already a node, return it.
     Actualize();              // But maybe other thread already did that.
     if (node_) return node_;  // If it did, return.

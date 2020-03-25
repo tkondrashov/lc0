@@ -284,8 +284,9 @@ EngineLoop::EngineLoop()
 
 void EngineLoop::RunLoop() {
   if (!ConfigFile::Init(&options_) || !options_.ProcessAllFlags()) return;
-  Logging::Get().SetFilename(
-      options_.GetOptionsDict().Get<std::string>(kLogFileId.GetId()));
+  const auto& id = kLogFileId.GetId();
+  const auto& filename = options_.GetOptionsDict().Get<std::string>(id);
+  Logging::Get().SetFilename(filename);
   UciLoop::RunLoop();
 }
 

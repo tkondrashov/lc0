@@ -29,19 +29,28 @@
 
 #include <string>
 #include <vector>
+#include "chess/bitboard.h"
 
 namespace lczero {
 
 // Joins strings using @delim as delimiter.
-std::string StrJoin(const std::vector<std::string>& strings,
-                    const std::string& delim = " ");
+std::string StrJoin(
+  const std::vector<std::string>& strings,
+  const std::string& delim = " "
+);
+
+std::string Str(const char* in);
+std::string Str(int in);
+std::string Str(const Move);
 
 // Splits strings at whitespace.
 std::vector<std::string> StrSplitAtWhitespace(const std::string& str);
 
 // Split string by delimiter.
-std::vector<std::string> StrSplit(const std::string& str,
-                                  const std::string& delim);
+std::vector<std::string> StrSplit(
+  const std::string& str,
+  const std::string& delim
+);
 
 // Parses comma-separated list of integers.
 std::vector<int> ParseIntList(const std::string& str);

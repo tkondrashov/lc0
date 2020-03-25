@@ -330,10 +330,14 @@ uint64_t ReverseBitsInBytes(uint64_t v) {
 }  // namespace
 
 V5TrainingData Node::GetV5TrainingData(
-    GameResult game_result, const PositionHistory& history,
+    GameResult game_result,
+    const PositionHistory& history,
     FillEmptyHistory fill_empty_history,
-    pblczero::NetworkFormat::InputFormat input_format, float best_q,
-    float best_d, float best_m) const {
+    pblczero::NetworkFormat::InputFormat input_format,
+    float best_q,
+    float best_d,
+    float best_m
+) const {
   V5TrainingData result;
 
   // Set version.
@@ -348,9 +352,10 @@ V5TrainingData Node::GetV5TrainingData(
   if (total_n == 0 && GetNumEdges() != 1) {
     throw Exception("Search generated invalid data!");
   }
+
   // Set illegal moves to have -1 probability.
-  std::fill(std::begin(result.probabilities), std::end(result.probabilities),
-            -1);
+  std::fill(std::begin(result.probabilities), std::end(result.probabilities), -1);
+
   // Set moves probabilities according to their relative amount of visits.
   for (const auto& child : Edges()) {
     result.probabilities[child.edge()->GetMove().as_nn_index()] =
@@ -358,8 +363,7 @@ V5TrainingData Node::GetV5TrainingData(
   }
 
   // Populate planes.
-  InputPlanes planes =
-      EncodePositionForNN(input_format, history, 8, fill_empty_history);
+  InputPlanes planes = EncodePositionForNN(history, 8, fill_empty_history);
   int plane_idx = 0;
   for (auto& plane : result.planes) {
     plane = ReverseBitsInBytes(planes[plane_idx++].mask);

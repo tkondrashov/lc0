@@ -401,10 +401,10 @@ void BlasComputation::ComputeBlocking() {
 }
 
 void BlasComputation::EncodePlanes(const InputPlanes& sample, float* buffer) {
-  for (const InputPlane& plane : sample) {
+  for (const InputPlane plane : sample) {
     const float value = plane.value;
     for (auto i = 0; i < kSquares; i++)
-      *(buffer++) = (plane.mask & (((uint64_t)1) << i)) != 0 ? value : 0;
+      *(buffer++) = (mask & (((uint64_t)1) << i)) != 0 ? value : 0;
   }
 }
 

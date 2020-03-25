@@ -507,7 +507,7 @@ MoveList ChessBoard::GeneratePseudolegalMoves() const {
     }
     if (processed_piece) continue;
     // Pawns.
-    if ((pawns_ & kPawnMask).get(source)) {
+    if (pawns().get(source)) {
       // Moves forward.
       {
         const auto dst_row = source.row() + 1;
@@ -635,8 +635,12 @@ bool ChessBoard::ApplyMove(Move move) {
   }
 
   // En passant.
-  if (from_row == RANK_5 && pawns_.get(from) && from_col != to_col &&
-      pawns_.get(RANK_8, to_col)) {
+  if (
+    from_row == RANK_5 &&
+    pawns_.get(from) &&
+    from_col != to_col &&
+    pawns_.get(RANK_8, to_col)
+  ) {
     pawns_.reset(RANK_5, to_col);
     their_pieces_.reset(RANK_5, to_col);
   }
@@ -723,7 +727,7 @@ bool ChessBoard::IsUnderAttack(BoardSquare square) const {
   {
     if (kKnightAttacks[square.as_int()].intersects(their_pieces_ - their_king_ -
                                                    rooks_ - bishops_ -
-                                                   (pawns_ & kPawnMask))) {
+                                                   pawns())) {
       return true;
     }
   }
@@ -1109,7 +1113,7 @@ bool ChessBoard::HasMatingMaterial() const {
     // K v K, K+B v K, K+N v K.
     return false;
   }
-  if (!(knights().empty())) {
+  if (!knights().empty()) {
     return true;
   }
 
@@ -1145,7 +1149,7 @@ string ChessBoard::DebugString() const {
         continue;
       }
       char c = '?';
-      if ((pawns_ & kPawnMask).get(i, j)) {
+      if (pawns().get(i, j)) {
         c = 'p';
       } else if (bishops_.get(i, j)) {
         if (rooks_.get(i, j))

@@ -211,12 +211,12 @@ class BitBoard {
   }
 
   // Returns union (bitwise OR) of two boards.
-  friend BitBoard operator|(const BitBoard& a, const BitBoard& b) {
+  const friend BitBoard operator|(const BitBoard& a, const BitBoard& b) {
     return {a.board_ | b.board_};
   }
 
   // Returns intersection (bitwise AND) of two boards.
-  friend BitBoard operator&(const BitBoard& a, const BitBoard& b) {
+  const friend BitBoard operator&(const BitBoard& a, const BitBoard& b) {
     return {a.board_ & b.board_};
   }
 
@@ -226,7 +226,7 @@ class BitBoard {
   }
 
   // Returns difference (bitwise AND-NOT) of two boards.
-  friend BitBoard operator-(const BitBoard& a, const BitBoard& b) {
+  const friend BitBoard operator-(const BitBoard& a, const BitBoard& b) {
     return {a.board_ & ~b.board_};
   }
 

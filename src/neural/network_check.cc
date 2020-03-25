@@ -293,7 +293,6 @@ class CheckNetwork : public Network {
         NetworkFactory::Get()->Create(backendName2, weights, backend2_dict);
 
     capabilities_ = work_net_->GetCapabilities();
-    capabilities_.Merge(check_net_->GetCapabilities());
 
     check_frequency_ =
         options.GetOrDefault<float>("freq", kDefaultCheckFrequency);

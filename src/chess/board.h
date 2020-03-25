@@ -66,7 +66,6 @@ class ChessBoard {
   static const ChessBoard kStartposBoard;
   static const BitBoard kPawnMask;
 
-  // Sets position from FEN string.
   // If @no_capture_ply and @moves are not nullptr, they are filled with number
   // of moves without capture and number of full moves since the beginning of
   // the game.
@@ -106,31 +105,35 @@ class ChessBoard {
   Move GetModernMove(Move move) const;
 
   uint64_t Hash() const {
-    return HashCat({our_pieces_.as_int(), their_pieces_.as_int(),
-                    rooks_.as_int(), bishops_.as_int(), pawns_.as_int(),
-                    (static_cast<uint32_t>(our_king_.as_int()) << 24) |
-                        (static_cast<uint32_t>(their_king_.as_int()) << 16) |
-                        (static_cast<uint32_t>(castlings_.as_int()) << 8) |
-                        static_cast<uint32_t>(flipped_)});
+    return HashCat({
+      our_pieces_.as_int(),
+      their_pieces_.as_int(),
+      rooks_.as_int(),
+      bishops_.as_int(),
+      pawns_.as_int(),
+      (static_cast<uint32_t>(our_king_.as_int()) << 24) |
+        (static_cast<uint32_t>(their_king_.as_int()) << 16) |
+        (static_cast<uint32_t>(castlings_.as_int()) << 8) |
+        static_cast<uint32_t>(flipped_)});
   }
 
   class Castlings {
    public:
     Castlings() : queenside_rook_(0), kingside_rook_(7) {}
 
-    void set_we_can_00() { data_ |= 1; }
-    void set_we_can_000() { data_ |= 2; }
-    void set_they_can_00() { data_ |= 4; }
+    void set_we_can_00()    { data_ |= 1; }
+    void set_we_can_000()   { data_ |= 2; }
+    void set_they_can_00()  { data_ |= 4; }
     void set_they_can_000() { data_ |= 8; }
 
-    void reset_we_can_00() { data_ &= ~1; }
-    void reset_we_can_000() { data_ &= ~2; }
-    void reset_they_can_00() { data_ &= ~4; }
+    void reset_we_can_00()    { data_ &= ~1; }
+    void reset_we_can_000()   { data_ &= ~2; }
+    void reset_they_can_00()  { data_ &= ~4; }
     void reset_they_can_000() { data_ &= ~8; }
 
-    bool we_can_00() const { return data_ & 1; }
-    bool we_can_000() const { return data_ & 2; }
-    bool they_can_00() const { return data_ & 4; }
+    bool we_can_00()    const { return data_ & 1; }
+    bool we_can_000()   const { return data_ & 2; }
+    bool they_can_00()  const { return data_ & 4; }
     bool they_can_000() const { return data_ & 8; }
     bool no_legal_castle() const { return data_ == 0; }
 
@@ -138,10 +141,10 @@ class ChessBoard {
 
     std::string DebugString() const {
       std::string result;
-      if (data_ == 0) result = "-";
-      if (we_can_00()) result += 'K';
-      if (we_can_000()) result += 'Q';
-      if (they_can_00()) result += 'k';
+      if (data_ == 0)     result = "-";
+      if (we_can_00())    result += 'K';
+      if (we_can_000())   result += 'Q';
+      if (they_can_00())  result += 'k';
       if (they_can_000()) result += 'q';
       result += '[';
       result += 'a' + queenside_rook();
@@ -180,37 +183,37 @@ class ChessBoard {
 
   std::string DebugString() const;
 
-  BitBoard ours() const { return our_pieces_; }
-  BitBoard theirs() const { return their_pieces_; }
-  BitBoard pawns() const { return pawns_ & kPawnMask; }
-  BitBoard en_passant() const { return pawns_ - kPawnMask; }
-  BitBoard bishops() const { return bishops_ - rooks_; }
-  BitBoard rooks() const { return rooks_ - bishops_; }
-  BitBoard queens() const { return rooks_ & bishops_; }
-  BitBoard knights() const {
-    return (our_pieces_ | their_pieces_) - pawns() - our_king_ - their_king_ -
-           rooks_ - bishops_;
-  }
-  BitBoard kings() const {
-    return our_king_.as_board() | their_king_.as_board();
-  }
+  const BitBoard pieces()     const { return our_pieces_ | their_pieces_; }
+  const BitBoard kings()      const { return our_king_.as_board() | their_king_.as_board(); }
+  const BitBoard queens()     const { return rooks_ & bishops_; }
+  const BitBoard bishops()    const { return bishops_ - rooks_; }
+  const BitBoard knights()    const { return pieces() - pawns() - kings() - bishops_ - rooks_; }
+  const BitBoard rooks()      const { return rooks_ - bishops_; }
+  const BitBoard pawns()      const { return pawns_ & kPawnMask; }
+  const BitBoard en_passant() const { return pawns_ - kPawnMask; }
+  const BitBoard ours()       const { return our_pieces_; }
+  const BitBoard theirs()     const { return their_pieces_; }
   const Castlings& castlings() const { return castlings_; }
-  bool flipped() const { return flipped_; }
+
+  constexpr bool flipped() const { return flipped_; }
 
   bool operator==(const ChessBoard& other) const {
-    return (our_pieces_ == other.our_pieces_) &&
-           (their_pieces_ == other.their_pieces_) && (rooks_ == other.rooks_) &&
-           (bishops_ == other.bishops_) && (pawns_ == other.pawns_) &&
-           (our_king_ == other.our_king_) &&
-           (their_king_ == other.their_king_) &&
-           (castlings_ == other.castlings_) && (flipped_ == other.flipped_);
+    return
+      (our_pieces_   == other.our_pieces_) &&
+      (their_pieces_ == other.their_pieces_) &&
+      (rooks_        == other.rooks_) &&
+      (bishops_      == other.bishops_) &&
+      (pawns_        == other.pawns_) &&
+      (our_king_     == other.our_king_) &&
+      (their_king_   == other.their_king_) &&
+      (castlings_    == other.castlings_) &&
+      (flipped_      == other.flipped_);
   }
 
   bool operator!=(const ChessBoard& other) const { return !operator==(other); }
 
   enum Square : uint8_t {
-    // clang-format off
-    A1 = 0, B1, C1, D1, E1, F1, G1, H1,
+    A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
     A3, B3, C3, D3, E3, F3, G3, H3,
     A4, B4, C4, D4, E4, F4, G4, H4,
@@ -218,18 +221,17 @@ class ChessBoard {
     A6, B6, C6, D6, E6, F6, G6, H6,
     A7, B7, C7, D7, E7, F7, G7, H7,
     A8, B8, C8, D8, E8, F8, G8, H8,
-    // clang-format on
   };
 
   enum File : uint8_t {
     // clang-format off
-    FILE_A = 0, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H
+    FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H
     // clang-format on
   };
 
   enum Rank : uint8_t {
     // clang-format off
-    RANK_1 = 0, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
+    RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
     // clang-format on
   };
 

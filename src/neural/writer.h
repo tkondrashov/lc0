@@ -25,6 +25,7 @@
   Program grant you additional permission to convey the resulting work.
 */
 
+#include <iostream>
 #include <zlib.h>
 #include <fstream>
 #include "utils/cppattributes.h"

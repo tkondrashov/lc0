@@ -31,11 +31,14 @@
 #include <cctype>
 #include <sstream>
 #include <vector>
+#include "chess/bitboard.h"
 
 namespace lczero {
 
-std::string StrJoin(const std::vector<std::string>& strings,
-                    const std::string& delim) {
+std::string StrJoin(
+  const std::vector<std::string>& strings,
+  const std::string& delim
+) {
   std::string res;
   for (const auto& str : strings) {
     if (!res.empty()) res += delim;
@@ -43,6 +46,10 @@ std::string StrJoin(const std::vector<std::string>& strings,
   }
   return res;
 }
+
+std::string Str(const char* in) { return std::string(in); }
+std::string Str(int in) { return std::to_string(in); }
+std::string Str(const Move in) { return in.as_string(); }
 
 std::vector<std::string> StrSplitAtWhitespace(const std::string& str) {
   std::vector<std::string> result;

@@ -381,8 +381,9 @@ void Search::MaybeTriggerStop(const IterationStats& stats,
     EnsureBestMoveKnown();
     SendMovesStats();
     BestMoveInfo info(
-        final_bestmove_.GetMove(played_history_.IsBlackToMove()),
-        final_pondermove_.GetMove(!played_history_.IsBlackToMove()));
+      final_bestmove_.GetMove(played_history_.IsBlackToMove()),
+      final_pondermove_.GetMove(!played_history_.IsBlackToMove())
+    );
     uci_responder_->OutputBestMove(&info);
     stopper_->OnSearchDone(stats);
     bestmove_is_sent_ = true;
@@ -452,8 +453,10 @@ void Search::ResetBestMove() {
 }
 
 // Computes the best move, maybe with temperature (according to the settings).
-void Search::EnsureBestMoveKnown() REQUIRES(nodes_mutex_)
-    REQUIRES(counters_mutex_) {
+void Search::EnsureBestMoveKnown()
+  REQUIRES(nodes_mutex_)
+  REQUIRES(counters_mutex_)
+{
   if (bestmove_is_sent_) return;
   if (!root_node_->HasChildren()) return;
 
@@ -480,8 +483,10 @@ void Search::EnsureBestMoveKnown() REQUIRES(nodes_mutex_)
 }
 
 // Returns @count children with most visits.
-std::vector<EdgeAndNode> Search::GetBestChildrenNoTemperature(Node* parent,
-                                                              int count) const {
+std::vector<EdgeAndNode> Search::GetBestChildrenNoTemperature(
+  Node* parent,
+  int count
+) const {
   MoveList root_limit;
   if (parent == root_node_) {
     PopulateRootMoveLimit(&root_limit);
@@ -566,7 +571,7 @@ std::vector<EdgeAndNode> Search::GetBestChildrenNoTemperature(Node* parent,
 
 // Returns a child with most visits.
 EdgeAndNode Search::GetBestChildNoTemperature(Node* parent) const {
-  auto res = GetBestChildrenNoTemperature(parent, 1);
+  const auto& res = GetBestChildrenNoTemperature(parent, 1);
   return res.empty() ? EdgeAndNode() : res.front();
 }
 
@@ -1104,11 +1109,11 @@ void SearchWorker::ExtendNode(Node* node) {
     // Neither by-position or by-rule termination, but maybe it's a TB position.
     if (search_->syzygy_tb_ && board.castlings().no_legal_castle() &&
         history_.Last().GetNoCaptureNoPawnPly() == 0 &&
-        (board.ours() | board.theirs()).count() <=
-            search_->syzygy_tb_->max_cardinality()) {
+        board.pieces().count() <= search_->syzygy_tb_->max_cardinality()
+    ) {
       ProbeState state;
       const WDLScore wdl =
-          search_->syzygy_tb_->probe_wdl(history_.Last(), &state);
+        search_->syzygy_tb_->probe_wdl(history_.Last(), &state);
       // Only fail state means the WDL is wrong, probe_wdl may produce correct
       // result with a stat other than OK.
       if (state != FAIL) {
@@ -1147,9 +1152,7 @@ bool SearchWorker::AddNodeToComputation(Node* node, bool add_if_cached) {
   } else {
     if (search_->cache_->ContainsKey(hash)) return true;
   }
-  auto planes =
-      EncodePositionForNN(search_->network_->GetCapabilities().input_format,
-                          history_, 8, params_.GetHistoryFill());
+  auto planes = EncodePositionForNN(history_, 8, params_.GetHistoryFill());
 
   std::vector<uint16_t> moves;
 

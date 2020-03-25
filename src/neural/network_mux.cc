@@ -117,8 +117,6 @@ class MuxingNetwork : public Network {
 
     if (networks_.size() == 1) {
       capabilities_ = net->GetCapabilities();
-    } else {
-      capabilities_.Merge(net->GetCapabilities());
     }
 
     for (int i = 0; i < nn_threads; ++i) {

@@ -31,6 +31,7 @@
 
 #include "selfplay/tournament.h"
 #include "utils/configfile.h"
+#include "utils/string.h"
 
 namespace lczero {
 
@@ -59,11 +60,12 @@ void SelfPlayLoop::RunLoop() {
     // who we are.
     SendId();
     SelfPlayTournament tournament(
-        options_.GetOptionsDict(),
-        std::bind(&UciLoop::SendBestMove, this, std::placeholders::_1),
-        std::bind(&UciLoop::SendInfo, this, std::placeholders::_1),
-        std::bind(&SelfPlayLoop::SendGameInfo, this, std::placeholders::_1),
-        std::bind(&SelfPlayLoop::SendTournament, this, std::placeholders::_1));
+      options_.GetOptionsDict(),
+      std::bind(&UciLoop::SendBestMove, this, std::placeholders::_1),
+      std::bind(&UciLoop::SendInfo, this, std::placeholders::_1),
+      std::bind(&SelfPlayLoop::SendGameInfo, this, std::placeholders::_1),
+      std::bind(&SelfPlayLoop::SendTournament, this, std::placeholders::_1)
+    );
     tournament.RunBlocking();
   }
 }
@@ -79,13 +81,14 @@ void SelfPlayLoop::CmdUci() {
 void SelfPlayLoop::CmdStart() {
   if (tournament_) return;
   tournament_ = std::make_unique<SelfPlayTournament>(
-      options_.GetOptionsDict(),
-      std::bind(&UciLoop::SendBestMove, this, std::placeholders::_1),
-      std::bind(&UciLoop::SendInfo, this, std::placeholders::_1),
-      std::bind(&SelfPlayLoop::SendGameInfo, this, std::placeholders::_1),
-      std::bind(&SelfPlayLoop::SendTournament, this, std::placeholders::_1));
+    options_.GetOptionsDict(),
+    std::bind(&UciLoop::SendBestMove, this, std::placeholders::_1),
+    std::bind(&UciLoop::SendInfo, this, std::placeholders::_1),
+    std::bind(&SelfPlayLoop::SendGameInfo, this, std::placeholders::_1),
+    std::bind(&SelfPlayLoop::SendTournament, this, std::placeholders::_1)
+  );
   thread_ =
-      std::make_unique<std::thread>([this]() { tournament_->RunBlocking(); });
+    std::make_unique<std::thread>([this]() { tournament_->RunBlocking(); });
 }
 
 void SelfPlayLoop::CmdStop() {
@@ -101,34 +104,42 @@ void SelfPlayLoop::SendGameInfo(const GameInfo& info) {
   if (info.min_false_positive_threshold) {
     std::string resign_res = "resign_report";
     resign_res +=
-        " fp_threshold " + std::to_string(*info.min_false_positive_threshold);
+      " fp_threshold " + Str(*info.min_false_positive_threshold);
     responses.push_back(resign_res);
   }
   std::string res = "gameready";
-  if (!info.training_filename.empty())
+  if (!info.training_filename.empty()) {
     res += " trainingfile " + info.training_filename;
-  if (info.game_id != -1) res += " gameid " + std::to_string(info.game_id);
-  res += " play_start_ply " + std::to_string(info.play_start_ply);
-  if (info.is_black)
-    res += " player1 " + std::string(*info.is_black ? "black" : "white");
+  }
+  if (info.game_id != -1) {
+    res += " gameid " + Str(info.game_id);
+  }
+  res += " play_start_ply " + Str(info.play_start_ply);
+  if (info.is_black) {
+    res += " player1 " + Str(*info.is_black ? "black" : "white");
+  }
   if (info.game_result != GameResult::UNDECIDED) {
-    res += std::string(" result ") +
-           ((info.game_result == GameResult::DRAW)
-                ? "draw"
-                : (info.game_result == GameResult::WHITE_WON) ? "whitewon"
-                                                              : "blackwon");
+    res += Str(" result ") +
+      ((info.game_result == GameResult::DRAW) ?
+        "draw" :
+        (info.game_result == GameResult::WHITE_WON) ?
+          "whitewon" :
+          "blackwon"
+      );
   }
   if (!info.moves.empty()) {
     res += " moves";
-    for (const auto& move : info.moves) res += " " + move.as_string();
+    for (const auto& move : info.moves) res += " " + Str(move);
   }
   responses.push_back(res);
   SendResponses(responses);
 }
 
-void SelfPlayLoop::CmdSetOption(const std::string& name,
-                                const std::string& value,
-                                const std::string& context) {
+void SelfPlayLoop::CmdSetOption(
+  const std::string& name,
+  const std::string& value,
+  const std::string& context
+) {
   options_.SetUciOption(name, value, context);
 }
 
@@ -137,32 +148,33 @@ void SelfPlayLoop::SendTournament(const TournamentInfo& info) {
   const int losep1 = info.results[2][0] + info.results[2][1];
   const int draws = info.results[1][0] + info.results[1][1];
 
-  // Initialize variables.
-  float percentage = -1;
-  std::optional<float> elo;
-  std::optional<float> los;
+  // floats optional for cases with division by 0
+  std::optional<float> percentage, elo, los;
 
-  // Only caculate percentage if any games at all (avoid divide by 0).
+  // only calculate percentage if there are games played
   if ((winp1 + losep1 + draws) > 0) {
-    percentage =
-        (static_cast<float>(draws) / 2 + winp1) / (winp1 + losep1 + draws);
+    percentage = (static_cast<float>(draws) / 2 + winp1) / (winp1 + losep1 + draws);
+
+    if ((*percentage < 1) && (*percentage > 0)) {
+      elo = -400 * log(1 / *percentage - 1) / log(10);
+    }
   }
-  // Calculate elo and los if percentage strictly between 0 and 1 (avoids divide
-  // by 0 or overflow).
-  if ((percentage < 1) && (percentage > 0))
-    elo = -400 * log(1 / percentage - 1) / log(10);
+
+  // Likelihood of Superiority (LoS)
   if ((winp1 + losep1) > 0) {
     los = .5f +
-          .5f * std::erf((winp1 - losep1) / std::sqrt(2.0 * (winp1 + losep1)));
+      .5f * std::erf((winp1 - losep1) / std::sqrt(2.0 * (winp1 + losep1)));
   }
   std::ostringstream oss;
   oss << "tournamentstatus";
-  if (info.finished) oss << " final";
+  if (info.finished) {
+    oss << " final";
+  }
   oss << " P1: +" << winp1 << " -" << losep1 << " =" << draws;
 
-  if (percentage > 0) {
+  if (percentage) {
     oss << " Win: " << std::fixed << std::setw(5) << std::setprecision(2)
-        << (percentage * 100.0f) << "%";
+        << (*percentage * 100.0f) << "%";
   }
   if (elo) {
     oss << " Elo: " << std::fixed << std::setw(5) << std::setprecision(2)
@@ -177,10 +189,9 @@ void SelfPlayLoop::SendTournament(const TournamentInfo& info) {
       << info.results[1][0];
   oss << " P1-B: +" << info.results[0][1] << " -" << info.results[2][1] << " ="
       << info.results[1][1];
-  oss << " npm " + std::to_string(static_cast<double>(info.nodes_total_) /
-                                  info.move_count_);
-  oss << " nodes " + std::to_string(info.nodes_total_);
-  oss << " moves " + std::to_string(info.move_count_);
+  oss << " npm "   + Str(static_cast<double>(info.nodes_total_) / info.move_count_);
+  oss << " nodes " + Str(info.nodes_total_);
+  oss << " moves " + Str(info.move_count_);
   SendResponse(oss.str());
 }
 

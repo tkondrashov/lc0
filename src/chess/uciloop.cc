@@ -131,7 +131,7 @@ void UciLoop::RunLoop() {
   while (std::getline(std::cin, line)) {
     LOGFILE << ">> " << line;
     try {
-      auto command = ParseCommand(line);
+      const auto& command = ParseCommand(line);
       // Ignore empty line.
       if (command.first.empty()) continue;
       if (!DispatchCommand(command.first, command.second)) break;
@@ -142,8 +142,9 @@ void UciLoop::RunLoop() {
 }
 
 bool UciLoop::DispatchCommand(
-    const std::string& command,
-    const std::unordered_map<std::string, std::string>& params) {
+  const std::string& command,
+  const std::unordered_map<std::string, std::string>& params
+) {
   if (command == "uci") {
     CmdUci();
   } else if (command == "isready") {
@@ -227,12 +228,11 @@ void UciLoop::SendId() {
 }
 
 void UciLoop::SendBestMove(const BestMoveInfo& move) {
-  std::string res = "bestmove " + move.bestmove.as_string();
-  if (move.ponder) res += " ponder " + move.ponder.as_string();
-  if (move.player != -1) res += " player " + std::to_string(move.player);
-  if (move.game_id != -1) res += " gameid " + std::to_string(move.game_id);
-  if (move.is_black)
-    res += " side " + std::string(*move.is_black ? "black" : "white");
+  std::string             res = "bestmove " + Str(move.bestmove);
+  if (move.ponder)        res += " ponder " + Str(move.ponder);
+  if (move.player != -1)  res += " player " + Str(move.player);
+  if (move.game_id != -1) res += " gameid " + Str(move.game_id);
+  if (move.is_black)      res += " side "   + Str(*move.is_black ? "black" : "white");
   SendResponse(res);
 }
 
@@ -240,28 +240,30 @@ void UciLoop::SendInfo(const std::vector<ThinkingInfo>& infos) {
   std::vector<std::string> reses;
   for (const auto& info : infos) {
     std::string res = "info";
-    if (info.player != -1) res += " player " + std::to_string(info.player);
-    if (info.game_id != -1) res += " gameid " + std::to_string(info.game_id);
-    if (info.is_black)
-      res += " side " + std::string(*info.is_black ? "black" : "white");
-    if (info.depth >= 0) res += " depth " + std::to_string(info.depth);
-    if (info.seldepth >= 0) res += " seldepth " + std::to_string(info.seldepth);
-    if (info.time >= 0) res += " time " + std::to_string(info.time);
-    if (info.nodes >= 0) res += " nodes " + std::to_string(info.nodes);
-    if (info.mate) res += " score mate " + std::to_string(*info.mate);
-    if (info.score) res += " score cp " + std::to_string(*info.score);
+
+    if (info.player != -1)  res += " player "   + Str(info.player);
+    if (info.game_id != -1) res += " gameid "   + Str(info.game_id);
+    if (info.is_black)      res += " side "     + Str(*info.is_black ? "black" : "white");
+    if (info.depth >= 0)    res += " depth "    + Str(info.depth);
+    if (info.seldepth >= 0) res += " seldepth " + Str(info.seldepth);
+    if (info.time >= 0)     res += " time "     + Str(info.time);
+    if (info.nodes >= 0)    res += " nodes "    + Str(info.nodes);
+    if (info.score)         res += " score cp " + Str(*info.score);
+
     if (info.wdl) {
-      res += " wdl " + std::to_string(info.wdl->w) + " " +
-             std::to_string(info.wdl->d) + " " + std::to_string(info.wdl->l);
+      res += " wdl " +
+        Str(info.wdl->w) + " " +
+        Str(info.wdl->d) + " " +
+        Str(info.wdl->l);
     }
-    if (info.hashfull >= 0) res += " hashfull " + std::to_string(info.hashfull);
-    if (info.nps >= 0) res += " nps " + std::to_string(info.nps);
-    if (info.tb_hits >= 0) res += " tbhits " + std::to_string(info.tb_hits);
-    if (info.multipv >= 0) res += " multipv " + std::to_string(info.multipv);
+    if (info.hashfull >= 0) res += " hashfull " + Str(info.hashfull);
+    if (info.nps >= 0)      res += " nps "      + Str(info.nps);
+    if (info.tb_hits >= 0)  res += " tbhits "   + Str(info.tb_hits);
+    if (info.multipv >= 0)  res += " multipv "  + Str(info.multipv);
 
     if (!info.pv.empty()) {
       res += " pv";
-      for (const auto& move : info.pv) res += " " + move.as_string();
+      for (const auto& move : info.pv) res += " " + Str(move);
     }
     if (!info.comment.empty()) res += " string " + info.comment;
     reses.push_back(std::move(res));

@@ -1321,7 +1321,7 @@ class SyzygyTablebaseImpl {
     const Key key = calc_key_from_position(pos);
 
     // Test for KvK
-    if (type == WDL && (pos.ours() | pos.theirs()) == pos.kings()) {
+    if (type == WDL && (pos.pieces() == pos.kings())) {
       return 0;
     }
 

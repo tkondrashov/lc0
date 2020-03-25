@@ -39,9 +39,10 @@ int main(int argc, const char** argv) {
   using namespace lczero;
   EscCodes::Init();
   LOGFILE << "Lc0 started.";
-  CERR << EscCodes::Bold() << EscCodes::Red() << "       _";
-  CERR << "|   _ | |";
-  CERR << "|_ |_ |_|" << EscCodes::Reset() << " v" << GetVersionStr()
+  CERR << EscCodes::Bold() << EscCodes::Red();
+  CERR << " _        _   _   _   _";
+  CERR << "|   |\\/|  _| | |  _| | |";
+  CERR << "|_| |  | |_  |_| |_  |_|" << EscCodes::Reset() << " v" << GetVersionStr()
        << " built " << __DATE__;
 
   try {

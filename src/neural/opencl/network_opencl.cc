@@ -221,9 +221,8 @@ class OpenCLComputation : public NetworkComputation {
 
 void OpenCLComputation::EncodePlanes(const InputPlanes& sample, float* buffer) {
   for (const InputPlane& plane : sample) {
-    const float value = plane.value;
     for (auto i = 0; i < kSquares; i++) {
-      *(buffer++) = (plane.mask & (((uint64_t)1) << i)) != 0 ? value : 0;
+      *(buffer++) = (plane & (((uint64_t)1) << i)) != 0 ? 1 : 0;
     }
   }
 }
